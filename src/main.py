@@ -7,11 +7,7 @@ logging.basicConfig(format='%(levelname)s - %(name)s - %(asctime)s\n%(message)s'
 logger = logging.getLogger("src.main")
 
 
-def count_dataframe(df: DataFrame) -> int:
-    return df.count()
-
-
-def test_function(spark: SparkSession):
+def get_dataframe(spark: SparkSession) -> DataFrame:
     schema = StructType([
         StructField('id', IntegerType(), True),
         StructField('first_name', StringType(), True),
@@ -23,11 +19,10 @@ def test_function(spark: SparkSession):
         (2, "Dionys", "Nabarro")
     ]
 
-    df = spark.createDataFrame(schema=schema, data=data)
-    count = count_dataframe(df)
-    logger.info(f"The dataframe contains {count} records.")
+    return spark.createDataFrame(schema=schema, data=data)
 
 
 if __name__ == '__main__':
     spark = SparkSession.builder.appName("revenue_aggregates").getOrCreate()
-    test_function(spark)
+    df = get_dataframe(spark)
+    logger.info(f"The dataframe contains {df.count()} records.")
