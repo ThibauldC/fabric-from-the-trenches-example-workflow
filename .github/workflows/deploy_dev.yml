@@ -1,0 +1,42 @@
+name: Upload changed files to dev OneLake
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+    inputs:
+      tag:
+        type: string
+        description: tag to push to dev
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            src
+          fetch-depth: 0
+      - name: Azure login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Upload all files in tag
+        uses: azure/CLI@v1
+        with:
+          azcliversion: latest
+          inlineScript: |
+            SRC_FILES=$(find src -type f -name "*.py")
+            REPO_NAME=$(echo $GITHUB_REPOSITORY | cut -d "/" -f2-)
+            az storage fs directory delete --blob-endpoint https://onelake.dfs.fabric.microsoft.com/ldp-dev/Bronze.Lakehouse/Files --auth-mode login -f from_the_trenches --name $REPO_NAME -y
+            az storage fs directory create --blob-endpoint https://onelake.dfs.fabric.microsoft.com/ldp-dev/Bronze.Lakehouse/Files --auth-mode login -f from_the_trenches --name $REPO_NAME
+            for file in ${SRC_FILES}; do
+              echo $file
+              FILE_PATH=$(echo "$file" | cut -d "/" -f2-)
+              az storage fs file upload --blob-endpoint https://onelake.dfs.fabric.microsoft.com/ldp-dev/Bronze.Lakehouse/Files --auth-mode login -f from_the_trenches --source $file --path $REPO_NAME/$FILE_PATH --overwrite
+            done
