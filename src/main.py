@@ -18,6 +18,7 @@ def get_dataframe(spark: SparkSession) -> DataFrame:
         (1, "Thibauld", "Croonenborghs"),
         (2, "Dionys", "Nabarro"),
         (3, "Koen", "Verbeeck"),
+        (4, "Unknown", "Stranger")
     ]
 
     return spark.createDataFrame(schema=schema, data=data)
