@@ -14,4 +14,4 @@ def spark() -> SparkSession:
 
 def test_get_dataframe(spark):
     df = get_dataframe(spark)
-    assert df.count() == 3
+    assert df.count() == 4
